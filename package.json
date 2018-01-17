@@ -1,0 +1,25 @@
+{
+  "name": "PaperVault",
+  "version": "0.0.1",
+  "description": "Cryptographically store information in QR codes",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "Abu Rashid",
+  "license": "MIT",
+  "dependencies": {
+    "jquery": "^3.2.1",
+    "qrcode-generator": "^1.3.1"
+  },
+  "devDependencies": {
+    "electron": "^1.7.10",
+    "electron-builder": "^19.53.7"
+  },
+  "build": {
+    "appId": "ms.ibrahim.papervault",
+    "win": {
+      "target": "portable"
+    }
+  }
+}

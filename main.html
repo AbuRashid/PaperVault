@@ -1,0 +1,157 @@
+<html>
+<head>
+  <title>Paper Vault</title>
+  <link rel="stylesheet" href="./semantic/semantic.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+  <script src="./node_modules/jquery/dist/jquery.js"></script>
+  <script>if (window.module) module = window.module;</script>
+  <script>window.$ = window.jQuery = require('jquery');</script>
+
+  <script src="./semantic/semantic.js"></script>
+</head>
+<body>
+  <div class="ui styled accordion">
+    <div class="active title">
+      <i class="dropdown icon"></i>
+      Encrypt
+    </div>
+    <div class="active content">
+      <form id="encryptForm">
+        <div class="ui form">
+          <div class="field">
+            <textarea id="inputData" rows="3" placeholder="Data to be encrypted.."></textarea>
+          </div>
+          <div class="ui icon input field">
+            <input type="password" id="password" placeholder="Password..">
+            <i class="lock icon"></i>
+          </div>
+          <div class="ui icon input field">
+            <input type="password" id="repeat" placeholder="Repeat..">
+            <i class="lock icon"></i>
+          </div>
+          <div class="field">
+            <button id="openFile" class="ui primary button">Encrypt</button>
+          </div>
+        </div>
+        <div class="ui form">
+          <div class="field">
+            <label>Encrypted data</label>
+            <textarea id="encryptedData" rows="3" readonly></textarea>
+            <div class="ui icon button" data-content="Copy to clipboard">
+              <i class="Copy icon link" data-content="Hello. This is a mini popup" data-variation="mini" onclick="copy2Clipboard()"></i>
+            </div>
+          </div>
+        </div>
+        <!-- <button id="copy" onclick="copy2Clipboard()">Copy</button> -->
+        <div id="qrImage"></div>
+      </form>
+    </div>
+    <div class="title">
+      <i class="dropdown icon"></i>
+      Decrypt
+    </div>
+    <div class="content">
+      <form id="decryptForm">
+        <div class="ui form">
+          <div class="field">
+            <textarea id="decryptData" rows="3" placeholder="Data to be decrypted.."></textarea>
+          </div>
+          <div class="ui icon input field">
+            <input type="password" id="password-decrypt" placeholder="Password..">
+            <i class="lock icon"></i>
+          </div>
+          <div class="field">
+            <button id="openFile" class="ui primary button">Decrypt</button>
+          </div>
+        </div>
+        <div class="ui form">
+          <div class="field">
+            <label>Decrypted data</label>
+            <textarea id="decryptedData" rows="3" readonly></textarea>
+            <div class="ui icon button" data-content="Copy to clipboard">
+              <i class="Copy icon link" data-content="Hello. This is a mini popup" data-variation="mini" onclick="copy2Clipboard()"></i>
+            </div>
+          </div>
+        </div>
+    </div>
+  </div>
+  <div class="ui modal">
+    <i class="close icon"></i>
+    <div class="header">
+      Modal Title
+    </div>
+    <div class="image content">
+      <div class="image">
+        An image can appear on left or an icon
+      </div>
+      <div class="description">
+        A description can appear on the right
+      </div>
+    </div>
+    <div class="actions">
+      <div class="ui button">Cancel</div>
+      <div class="ui button">OK</div>
+    </div>
+  </div>
+
+  <script>
+    const electron = require('electron');
+    const {clipboard} = electron;
+    const {ipcRenderer} = electron;
+    const {dialog} = electron;
+    const form = document.querySelector('form');
+    const jq = require('jquery');
+
+    //form.addEventListener('submit', submitForm);
+    document.querySelector('#encryptForm').addEventListener('submit', submitFormEncrypt);
+    document.querySelector('#decryptForm').addEventListener('submit', submitFormDecrypt);
+
+    function submitFormDecrypt(e) {
+      e.preventDefault();
+      const inputData = document.querySelector('#decryptData').value;
+      const password = document.querySelector('#password-decrypt').value;
+
+      ipcRenderer.send('decrypt:data', inputData, password);
+      console.log(inputData);
+    }
+
+    function submitFormEncrypt(e) {
+      e.preventDefault();
+      const inputData = document.querySelector('#inputData').value;
+      const password = document.querySelector('#password').value;
+      const repeat = document.querySelector('#repeat').value;
+
+      if (password != repeat) {
+        console.log('password mismatch');
+        ipcRenderer.send('password:mismatch');
+      } else {
+        ipcRenderer.send('encrypt:data', inputData, password);
+      }
+      console.log(inputData);
+    }
+
+    ipcRenderer.on('display:file', function(e, data) {
+      document.querySelector('#inputData').value = data;
+    });
+
+    ipcRenderer.on('display:encrypted', function(e, data, image) {
+      document.querySelector('#encryptedData').value = data;
+      document.querySelector('#qrImage').innerHTML = image;
+    });
+
+    ipcRenderer.on('display:decrypted', function(e, data) {
+      document.querySelector('#decryptedData').value = data;
+    });
+
+    function copy2Clipboard() {
+      const encryptedText = document.querySelector('#encryptedData').value;
+      clipboard.writeText(encryptedText);
+      $('.ui.modal').modal();
+    }
+
+    $('.ui.accordion').accordion();
+  </script>
+
+</body>
+</html>
